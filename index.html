@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floreal Fitness Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Floreal Fitness Tracker</h1>
+    </header>
+
+    <!-- Barre de navigation pour basculer entre les vues -->
+    <nav class="main-nav">
+        <button class="nav-btn active" onclick="switchView('tracker')">➕ Saisie</button>
+        <button class="nav-btn" onclick="switchView('calendar')">📅 Calendrier</button>
+        <button class="nav-btn" onclick="switchView('stats')">📊 Stats & Records</button>
+    </nav>
+
+    <main>
+        <!-- VUE 1 : SAISIE DE SÉANCE -->
+        <section id="section-tracker" class="view-section">
+            <div class="card">
+                <h2>Enregistrer une séance</h2>
+                <form id="workout-form">
+                    <div class="row">
+                        <div>
+                            <label for="workout-date">Date de la séance :</label>
+                            <input type="date" id="workout-date">
+                        </div>
+                        <div>
+                            <label for="total-duration">Durée totale (min) :</label>
+                            <input type="number" id="total-duration" placeholder="ex: 45">
+                        </div>
+                    </div>
+
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #444;">
+
+                    <label for="category">Type d'effort :</label>
+                    <select id="category" onchange="toggleInputs()">
+                        <option value="muscu">Musculation (Charges)</option>
+                        <option value="cardio_indoor">Cardio Intérieur (Maison)</option>
+                        <option value="cardio_outdoor">Cardio Extérieur & Terrain</option>
+                        <option value="etirements">Étirements, Yoga & Mobilité</option>
+                        <option value="marche">Marche (Pas du jour)</option>
+                    </select>
+
+                    <label for="activity">Activité / Exercice :</label>
+                    <select id="activity" onchange="toggleActivitySpecifics()">
+                        <!-- Rempli dynamiquement en JS -->
+                    </select>
+
+                    <!-- Champs pour Muscu -->
+                    <div id="muscu-inputs">
+                        <div class="row">
+                            <div>
+                                <label>Poids (kg) :</label>
+                                <input type="number" id="weight" step="0.5" placeholder="ex: 40">
+                            </div>
+                            <div>
+                                <label>Répétitions :</label>
+                                <input type="number" id="reps" placeholder="ex: 10">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div>
+                                <label>Séries :</label>
+                                <input type="number" id="sets" placeholder="ex: 3">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Champs pour Course / Trail -->
+                    <div id="running-inputs" style="display: none;">
+                        <label>Type de course :</label>
+                        <select id="run-type">
+                            <option value="Sortie tranquille">Sortie tranquille</option>
+                            <option value="Trail">Trail</option>
+                            <option value="Fractionné">Fractionné</option>
+                        </select>
+                        <div class="row">
+                            <div>
+                                <label>Distance (km) :</label>
+                                <input type="number" id="run-distance" step="0.1" placeholder="ex: 8.5">
+                            </div>
+                            <div>
+                                <label>Dénivelé (m) :</label>
+                                <input type="number" id="run-elevation" placeholder="ex: 150">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div>
+                                <label>Vitesse moy. (km/h) :</label>
+                                <input type="number" id="run-speed" step="0.1" placeholder="ex: 11.2">
+                            </div>
+                            <div>
+                                <label>Durée (min) :</label>
+                                <input type="number" id="run-duration" placeholder="ex: 45">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Champs pour Marche -->
+                    <div id="steps-inputs" style="display: none;">
+                        <label>Nombre de pas dans la journée :</label>
+                        <input type="number" id="steps-count" placeholder="ex: 10000">
+                    </div>
+
+                    <!-- Champs Classiques Durée -->
+                    <div id="duration-inputs">
+                        <label>Durée de l'exercice (min) :</label>
+                        <input type="number" id="duration" placeholder="ex: 30">
+                    </div>
+
+                    <button type="button" class="btn-secondary" onclick="addExerciseToSession()">➕ Ajouter cet exercice</button>
+
+                    <div id="current-session-box" style="margin-top: 15px; display: none;">
+                        <h3>Exercices de la séance :</h3>
+                        <ul id="current-exercises-list"></ul>
+                    </div>
+
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #444;">
+
+                    <label for="notes">Notes / Ressenti global :</label>
+                    <textarea id="notes" placeholder="Ex: Bonne énergie, super séance..."></textarea>
+
+                    <button type="submit" class="btn">Enregistrer toute la séance</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Historique de tes séances</h2>
+                <div id="history-list">
+                    <p class="empty">Aucune séance enregistrée pour l'instant.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- VUE 2 : CALENDRIER & STREAK -->
+        <section id="section-calendar" class="view-section" style="display: none;">
+            <div class="card">
+                <h2>Calendrier d'activité</h2>
+                <div id="streak-info" style="margin-bottom: 15px; text-align: center; font-weight: bold; color: #ff6b6b;">
+                    <!-- Affichage de la streak -->
+                </div>
+                <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <button onclick="changeMonth(-1)" class="btn-secondary" style="width: auto; padding: 5px 10px;">◀ Préc.</button>
+                    <h3 id="calendar-month-year" style="margin: 0; color: #fff;">Mois Année</h3>
+                    <button onclick="changeMonth(1)" class="btn-secondary" style="width: auto; padding: 5px 10px;">Suiv. ▶</button>
+                </div>
+                <div id="calendar-grid" class="calendar-grid">
+                    <!-- Généré en JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- VUE 3 : STATISTIQUES & RECORDS -->
+        <section id="section-stats" class="view-section" style="display: none;">
+            <div class="card">
+                <h2>Statistiques & Records</h2>
+                <div id="stats-content">
+                    <!-- Généré en JS -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -2,10 +2,21 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Floreal Fitness Tracker</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="logo.png">
+    
+    <!-- Configuration PWA & iPhone Plein Écran -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Floreal Fit">
+    <meta name="theme-color" content="#121212">
+
+    <!-- Librairie Chart.js pour les graphiques d'évolution -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header style="display: flex; align-items: center; justify-content: center; gap: 10px;">
@@ -125,9 +136,20 @@
                     <hr style="margin: 15px 0; border: 0; border-top: 1px solid #444;">
 
                     <label for="notes">Notes / Ressenti global :</label>
-                    <textarea id="notes" placeholder="Ex: Bonne énergie, super séance..."></textarea>
+                    <textarea id="notes" placeholder="Ex: Bonne énergie, super paysage pendant le run..."></textarea>
 
-                    <button type="submit" class="btn">Enregistrer toute la séance</button>
+                    <!-- AJOUT PHOTO DE SÉANCE -->
+                    <label class="photo-upload-label" for="workout-photo">
+                        📸 Ajouter une photo souvenir (optionnel)
+                    </label>
+                    <input type="file" id="workout-photo" accept="image/*" style="display: none;" onchange="handlePhotoSelect(event)">
+                    
+                    <div id="photo-preview-container" style="display: none;">
+                        <img id="photo-preview" src="" alt="Aperçu photo">
+                        <button type="button" class="remove-photo-btn" onclick="clearPhoto()">❌ Retirer la photo</button>
+                    </div>
+
+                    <button type="submit" class="btn" style="margin-top: 10px;">Enregistrer toute la séance</button>
                 </form>
             </div>
 
@@ -157,12 +179,47 @@
             </div>
         </section>
 
-        <!-- VUE 3 : STATISTIQUES & RECORDS -->
+        <!-- VUE 3 : STATISTIQUES, GRAPHIQUES & SAUVEGARDE -->
         <section id="section-stats" class="view-section" style="display: none;">
+            <!-- CARTE GRAPHIQUES D'ÉVOLUTION -->
             <div class="card">
-                <h2>Statistiques & Records</h2>
+                <h2>📈 Graphiques d'évolution</h2>
+                <label for="chart-filter">Choisir la courbe à afficher :</label>
+                <select id="chart-filter" onchange="updateChart()">
+                    <option value="run_distance">🏃‍♂️ Course : Distance par sortie (km)</option>
+                    <option value="run_speed">⚡ Course : Vitesse moyenne (km/h)</option>
+                    <option value="steps">🚶‍♂️ Marche : Nombre de pas quotidiens</option>
+                    <option value="muscu_Développé couché (Barre)">🏋️‍♂️ Développé couché (Barre) - Charge (kg)</option>
+                    <option value="muscu_Développé / Curl aux haltères">🏋️‍♂️ Développé / Curl haltères - Charge (kg)</option>
+                    <option value="muscu_Kettlebell Swing / Squat">🏋️‍♂️ Kettlebell Swing / Squat - Charge (kg)</option>
+                </select>
+                <div class="chart-container">
+                    <canvas id="evolutionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- CARTE RANGS, SUCCÈS & RECORDS -->
+            <div class="card">
+                <h2>🏆 Statistiques & Records</h2>
                 <div id="stats-content">
                     <!-- Généré en JS -->
+                </div>
+            </div>
+
+            <!-- CARTE SAUVEGARDE EXPORT / IMPORT -->
+            <div class="card">
+                <h2>💾 Sauvegarde de tes données</h2>
+                <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 12px;">
+                    Tes données sont enregistrées sur ton iPhone. Exporte régulièrement une copie pour ne jamais rien perdre !
+                </p>
+                <div class="row">
+                    <div>
+                        <button type="button" class="btn" style="background-color: #2ecc71;" onclick="exportData()">📥 Exporter</button>
+                    </div>
+                    <div>
+                        <label for="import-file" class="btn" style="background-color: #3498db; display: block; text-align: center; margin-bottom: 0;">📤 Importer</label>
+                        <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(event)">
+                    </div>
                 </div>
             </div>
         </section>

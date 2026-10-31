@@ -31,7 +31,9 @@ const activitiesData = {
 };
 
 let currentExercises = [];
+let currentPhotoBase64 = null;
 let currentCalendarDate = new Date();
+let evolutionChartInstance = null;
 
 // --- NAVIGATION ENTRE LES VUES ---
 function switchView(viewName) {
@@ -49,6 +51,7 @@ function switchView(viewName) {
         document.getElementById('section-stats').style.display = 'block';
         document.querySelector('button[onclick="switchView(\'stats\')"]').classList.add('active');
         renderStats();
+        updateChart();
     }
 }
 
@@ -137,6 +140,11 @@ function addExerciseToSession() {
     document.getElementById('steps-count').value = '';
 }
 
+function removeExerciseFromSession(index) {
+    currentExercises.splice(index, 1);
+    updateCurrentSessionDisplay();
+}
+
 function updateCurrentSessionDisplay() {
     const box = document.getElementById('current-session-box');
     const list = document.getElementById('current-exercises-list');
@@ -149,21 +157,82 @@ function updateCurrentSessionDisplay() {
     box.style.display = 'block';
     list.innerHTML = '';
     
-    currentExercises.forEach((ex) => {
+    currentExercises.forEach((ex, index) => {
         let li = document.createElement('li');
+        li.className = 'exercise-item-row';
+        
+        let textSpan = document.createElement('span');
         if (ex.category === 'muscu') {
-            li.textContent = `${ex.activity} : ${ex.sets} séries x ${ex.reps} reps à ${ex.weight}kg`;
+            textSpan.textContent = `${ex.activity} : ${ex.sets}x${ex.reps} à ${ex.weight}kg`;
         } else if (ex.category === 'marche') {
-            li.textContent = `${ex.activity} : 🚶‍♂️ ${ex.steps} pas`;
+            textSpan.textContent = `${ex.activity} : 🚶‍♂️ ${ex.steps} pas`;
         } else if (ex.runType) {
-            li.textContent = `${ex.activity} (${ex.runType}) : ${ex.distance} km, ${ex.duration} min, ${ex.speed} km/h, ${ex.elevation}m D+`;
+            textSpan.textContent = `${ex.activity} (${ex.runType}) : ${ex.distance} km, ${ex.duration} min`;
         } else {
-            li.textContent = `${ex.activity} : ⏱️ ${ex.duration} min`;
+            textSpan.textContent = `${ex.activity} : ⏱️ ${ex.duration} min`;
         }
+
+        let delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'delete-ex-btn';
+        delBtn.textContent = '❌';
+        delBtn.onclick = () => removeExerciseFromSession(index);
+
+        li.appendChild(textSpan);
+        li.appendChild(delBtn);
         list.appendChild(li);
     });
 }
 
+// --- GESTION & COMPRESSION PHOTO ---
+function handlePhotoSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX_SIZE = 700; // Taille idéale pour mobile sans saturer la mémoire
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > MAX_SIZE) {
+                    height *= MAX_SIZE / width;
+                    width = MAX_SIZE;
+                }
+            } else {
+                if (height > MAX_SIZE) {
+                    width *= MAX_SIZE / height;
+                    height = MAX_SIZE;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Compression JPEG à 70%
+            currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            document.getElementById('photo-preview').src = currentPhotoBase64;
+            document.getElementById('photo-preview-container').style.display = 'block';
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearPhoto() {
+    currentPhotoBase64 = null;
+    document.getElementById('workout-photo').value = '';
+    document.getElementById('photo-preview').src = '';
+    document.getElementById('photo-preview-container').style.display = 'none';
+}
+
+// --- ENREGISTREMENT DE LA SÉANCE ---
 document.getElementById('workout-form').addEventListener('submit', function(e) {
     e.preventDefault();
 
@@ -180,15 +249,23 @@ document.getElementById('workout-form').addEventListener('submit', function(e) {
         date: rawDate,
         totalDuration: totalDuration,
         exercises: [...currentExercises],
-        notes
+        notes: notes,
+        photo: currentPhotoBase64
     };
 
     let workouts = JSON.parse(localStorage.getItem('workouts')) || [];
     workouts.push(workoutSession);
     workouts.sort((a, b) => new Date(b.date) - new Date(a.date));
-    localStorage.setItem('workouts', JSON.stringify(workouts));
+    
+    try {
+        localStorage.setItem('workouts', JSON.stringify(workouts));
+    } catch (err) {
+        alert("Mémoire pleine ! Pense à exporter tes données ou supprimer d'anciennes photos.");
+        return;
+    }
 
     currentExercises = [];
+    clearPhoto();
     document.getElementById('workout-form').reset();
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('workout-date').value = today;
@@ -237,6 +314,7 @@ function loadHistory() {
             </div>
             <div style="margin: 6px 0;">${exercisesHtml}</div>
             ${w.notes ? `<small>💬 ${w.notes}</small>` : ''}
+            ${w.photo ? `<img src="${w.photo}" class="history-photo" alt="Photo de la séance">` : ''}
         `;
         historyList.appendChild(item);
     });
@@ -366,6 +444,94 @@ function calculateStreak(workouts, container) {
     `;
 }
 
+// --- GRAPHIQUES D'ÉVOLUTION (CHART.JS) ---
+function updateChart() {
+    const filter = document.getElementById('chart-filter').value;
+    const ctx = document.getElementById('evolutionChart').getContext('2d');
+    let workouts = JSON.parse(localStorage.getItem('workouts')) || [];
+
+    // Trier du plus ancien au plus récent pour l'axe horizontal du graphique
+    let chronologicalWorkouts = [...workouts].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    let labels = [];
+    let dataPoints = [];
+    let chartLabel = "";
+    let borderColor = "#ff6b6b";
+
+    chronologicalWorkouts.forEach(w => {
+        let shortDate = new Date(w.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+
+        w.exercises.forEach(ex => {
+            if (filter === 'run_distance' && ex.activity === 'Course à pied / Trail / Outdoor' && ex.distance > 0) {
+                labels.push(shortDate);
+                dataPoints.push(ex.distance);
+                chartLabel = "Distance (km)";
+                borderColor = "#2ecc71";
+            } else if (filter === 'run_speed' && ex.activity === 'Course à pied / Trail / Outdoor' && ex.speed > 0) {
+                labels.push(shortDate);
+                dataPoints.push(ex.speed);
+                chartLabel = "Vitesse moy. (km/h)";
+                borderColor = "#3498db";
+            } else if (filter === 'steps' && ex.category === 'marche' && ex.steps > 0) {
+                labels.push(shortDate);
+                dataPoints.push(ex.steps);
+                chartLabel = "Nombre de pas";
+                borderColor = "#f1c40f";
+            } else if (filter.startsWith('muscu_')) {
+                let targetExercise = filter.replace('muscu_', '');
+                if (ex.category === 'muscu' && ex.activity === targetExercise && ex.weight > 0) {
+                    labels.push(shortDate);
+                    dataPoints.push(ex.weight);
+                    chartLabel = "Charge soulevée (kg)";
+                    borderColor = "#ff6b6b";
+                }
+            }
+        });
+    });
+
+    if (evolutionChartInstance) {
+        evolutionChartInstance.destroy();
+    }
+
+    evolutionChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.length > 0 ? labels : ['Aucune donnée'],
+            datasets: [{
+                label: chartLabel || 'Sélection',
+                data: dataPoints.length > 0 ? dataPoints : [0],
+                borderColor: borderColor,
+                backgroundColor: borderColor + '33',
+                borderWidth: 3,
+                pointBackgroundColor: '#ffffff',
+                pointRadius: 4,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: '#e0e0e0', font: { size: 12 } }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#aaa' },
+                    grid: { color: '#333' }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#aaa' },
+                    grid: { color: '#333' }
+                }
+            }
+        }
+    });
+}
+
 // --- STATS, RANGS DE SAISON & SUCCÈS (ACHIEVEMENTS) ---
 function renderStats() {
     const statsContent = document.getElementById('stats-content');
@@ -376,7 +542,6 @@ function renderStats() {
         return;
     }
 
-    // Calculs globaux et sur les 14 derniers jours (Saison)
     let maxWeights = {}; 
     let totalRunningKm = 0;
     let totalRunningElevation = 0;
@@ -419,7 +584,6 @@ function renderStats() {
 
     let avgSteps = stepsCountEntries > 0 ? Math.round(totalSteps / stepsCountEntries) : 0;
 
-    // --- CALCUL DES RANGS DE SAISON (14 JOURS) ---
     function getSeasonRank(type, val) {
         if (val === 0 || isNaN(val)) return `<div class="rank-card rank-unranked"><div class="rank-title">Saison : ${type}</div><div class="rank-badge">⚪ UNRANKED</div><small>Aucune activité récente</small></div>`;
 
@@ -447,12 +611,10 @@ function renderStats() {
 
     let html = '';
 
-    // Rangs
     html += `<h3 style="margin-top:5px; margin-bottom:8px;">🎮 Rangs de Saison (Quinzaine)</h3>`;
     html += getSeasonRank("Marche", seasonSteps);
     html += getSeasonRank("Course", seasonRunningKm);
 
-    // --- LISTE DES SUCCÈS / ACHIEVEMENTS (À VIE) ---
     html += `<h3 style="margin-top:15px; margin-bottom:8px;">🏆 Succès & Achievements (À vie)</h3>`;
 
     const achievements = [
@@ -465,7 +627,7 @@ function renderStats() {
         { title: "Maître Zen 🧘", desc: "Compléter 5 séances de yoga ou d'étirements", unlocked: totalYogaSessions >= 5 },
         { title: "Esprit Divin de la Mobilité", desc: "Compléter 20 séances de yoga / souplesse", unlocked: totalYogaSessions >= 20 },
         { title: "Buteur du Dimanche", desc: "Enregistrer 3 matchs ou entraînements de foot", unlocked: totalFootballSessions >= 3 },
-        { title: "Machine de Guerre 🏋️", desc: "Soulever plus de 50 kg sur un exercice de muscu", unlocked: Object.values(maxWeights).some(w => w >= 50) }
+        { title: "Machine de Guerre 🏋️", desc: "Soulever au moins 50 kg sur un exercice de muscu", unlocked: Object.values(maxWeights).some(w => w >= 50) }
     ];
 
     achievements.forEach(ach => {
@@ -480,7 +642,6 @@ function renderStats() {
         `;
     });
 
-    // Records Muscu
     html += `<h3 style="margin-top:15px; margin-bottom:8px;">🏋️‍♂️ Records de Poids (Muscu)</h3>`;
     if (Object.keys(maxWeights).length > 0) {
         for (let act in maxWeights) {
@@ -490,10 +651,52 @@ function renderStats() {
         html += `<p style="color:#777; font-size:0.9rem; margin-bottom:10px;">Aucun record de musculation enregistré.</p>`;
     }
 
-    // Stats Course
     html += `<h3 style="margin-top:15px; margin-bottom:8px;">🏃‍♂️ Course à pied & Trail</h3>`;
     html += `<div class="stat-card"><h4>Distance Totale Parcourue</h4><p>${totalRunningKm.toFixed(1)} km</p><small>Cumul de toutes tes sorties</small></div>`;
     html += `<div class="stat-card"><h4>Dénivelé Positif Cumulé</h4><p>${totalRunningElevation} m D+</p><small>Effort vertical total</small></div>`;
 
+    html += `<h3 style="margin-top:15px; margin-bottom:8px;">🚶‍♂️ Marche & Pas</h3>`;
+    html += `<div class="stat-card"><h4>Total de Pas Cumulés</h4><p>${totalSteps.toLocaleString()} pas</p><small>Moyenne : ${avgSteps.toLocaleString()} pas / jour enregistré</small></div>`;
+
     statsContent.innerHTML = html;
+}
+
+// --- SAUVEGARDE : EXPORT & IMPORT JSON ---
+function exportData() {
+    let workouts = localStorage.getItem('workouts') || '[]';
+    let blob = new Blob([workouts], { type: 'application/json' });
+    let url = URL.createObjectURL(blob);
+    
+    let a = document.createElement('a');
+    let today = new Date().toISOString().split('T')[0];
+    a.href = url;
+    a.download = `floreal-fitness-sauvegarde-${today}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedWorkouts = JSON.parse(e.target.result);
+            if (Array.isArray(importedWorkouts)) {
+                localStorage.setItem('workouts', JSON.stringify(importedWorkouts));
+                loadHistory();
+                renderStats();
+                updateChart();
+                alert("Sauvegarde importée avec succès ! 🎉");
+            } else {
+                alert("Le fichier choisi n'est pas valide.");
+            }
+        } catch (err) {
+            alert("Erreur lors de la lecture du fichier de sauvegarde.");
+        }
+    };
+    reader.readAsText(file);
 }

@@ -7,8 +7,8 @@
 }
 
 body {
-    background-color: #121212;
-    color: #e0e0e0;
+    background-color: #36210f; /* Brun foncé du logo */
+    color: #fdfbf7;            /* Blanc cassé pour le texte */
     padding: calc(15px + env(safe-area-inset-top)) 15px calc(25px + env(safe-area-inset-bottom)) 15px;
     max-width: 500px;
     margin: 0 auto;
@@ -22,7 +22,7 @@ header {
 
 h1 {
     font-size: 1.5rem;
-    color: #ff6b6b;
+    color: #d4831f; /* Orange du logo */
 }
 
 /* Barre de navigation principale */
@@ -30,7 +30,7 @@ h1 {
     display: flex;
     gap: 5px;
     margin-bottom: 15px;
-    background-color: #1e1e1e;
+    background-color: #4a2e16; /* Bloc brun */
     padding: 5px;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
@@ -39,7 +39,7 @@ h1 {
 .nav-btn {
     flex: 1;
     background-color: transparent;
-    color: #b0b0b0;
+    color: #c8b9ab;
     border: none;
     padding: 10px 5px;
     border-radius: 8px;
@@ -51,17 +51,17 @@ h1 {
 }
 
 .nav-btn.active {
-    background-color: #ff6b6b;
-    color: white;
+    background-color: #d4831f; /* Orange actif */
+    color: #ffffff;
 }
 
 .nav-btn:hover:not(.active) {
-    background-color: #2c2c2c;
+    background-color: #5c3a1d;
     color: white;
 }
 
 .card {
-    background-color: #1e1e1e;
+    background-color: #4a2e16; /* Fond des blocs / cartes */
     border-radius: 12px;
     padding: 15px;
     margin-bottom: 15px;
@@ -71,14 +71,14 @@ h1 {
 h2 {
     font-size: 1.1rem;
     margin-bottom: 12px;
-    color: #ffffff;
-    border-bottom: 2px solid #333;
+    color: #fdfbf7;
+    border-bottom: 2px solid #36210f;
     padding-bottom: 5px;
 }
 
 h3 {
     font-size: 0.95rem;
-    color: #ff6b6b;
+    color: #d4831f;
     margin-bottom: 5px;
 }
 
@@ -86,17 +86,17 @@ label {
     display: block;
     font-size: 0.9rem;
     margin-bottom: 5px;
-    color: #b0b0b0;
+    color: #c8b9ab;
 }
 
 select, input, textarea {
     width: 100%;
     padding: 10px;
     margin-bottom: 12px;
-    background-color: #2c2c2c;
-    border: 1px solid #444;
+    background-color: #36210f; /* Fond des champs de saisie */
+    border: 1px solid #5c3a1d;
     border-radius: 8px;
-    color: white;
+    color: #fdfbf7;
     font-size: 1rem;
 }
 
@@ -120,7 +120,7 @@ textarea {
 
 .btn {
     width: 100%;
-    background-color: #ff6b6b;
+    background-color: #d4831f; /* Bouton orange */
     color: white;
     border: none;
     padding: 12px;
@@ -132,14 +132,14 @@ textarea {
 }
 
 .btn:hover {
-    background-color: #ff5252;
+    background-color: #e6952e;
 }
 
 .btn-secondary {
     width: 100%;
-    background-color: #2c2c2c;
-    color: #ff6b6b;
-    border: 2px dashed #ff6b6b;
+    background-color: #36210f;
+    color: #d4831f;
+    border: 2px dashed #d4831f;
     padding: 10px;
     border-radius: 8px;
     font-size: 0.95rem;
@@ -150,12 +150,12 @@ textarea {
 }
 
 .btn-secondary:hover {
-    background-color: #383838;
+    background-color: #4a2e16;
 }
 
 /* --- LISTE D'EXERCICES EN COURS DE SAISIE --- */
 #current-session-box {
-    background-color: #252525;
+    background-color: #36210f;
     padding: 10px;
     border-radius: 8px;
     font-size: 0.9rem;
@@ -172,7 +172,7 @@ textarea {
     justify-content: space-between;
     align-items: center;
     padding: 6px 0;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid #4a2e16;
 }
 
 .exercise-item-row:last-child {
@@ -182,7 +182,7 @@ textarea {
 .delete-ex-btn {
     background: none;
     border: none;
-    color: #ff6b6b;
+    color: #d4831f;
     font-size: 0.85rem;
     cursor: pointer;
     padding: 2px 6px;
@@ -193,9 +193,9 @@ textarea {
 .photo-upload-label {
     display: block;
     width: 100%;
-    background-color: #252525;
-    color: #e0e0e0;
-    border: 1px solid #444;
+    background-color: #36210f;
+    color: #fdfbf7;
+    border: 1px solid #5c3a1d;
     padding: 10px;
     border-radius: 8px;
     text-align: center;
@@ -206,13 +206,13 @@ textarea {
 }
 
 .photo-upload-label:hover {
-    background-color: #303030;
+    background-color: #4a2e16;
 }
 
 #photo-preview-container {
     text-align: center;
     margin-bottom: 12px;
-    background-color: #252525;
+    background-color: #36210f;
     padding: 10px;
     border-radius: 8px;
 }
@@ -239,30 +239,30 @@ textarea {
 .history-photo {
     width: 100%;
     max-height: 250px;
-    object-fit: cover;
+    object-ref: cover;
     border-radius: 8px;
     margin-top: 8px;
-    border: 1px solid #333;
+    border: 1px solid #5c3a1d;
 }
 
 /* --- HISTORIQUE --- */
 .history-item {
-    background-color: #252525;
+    background-color: #36210f;
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 10px;
-    border-left: 4px solid #ff6b6b;
+    border-left: 4px solid #d4831f;
     font-size: 0.9rem;
 }
 
 .history-item small {
-    color: #888;
+    color: #c8b9ab;
     display: block;
     margin-top: 4px;
 }
 
 .empty {
-    color: #777;
+    color: #c8b9ab;
     font-style: italic;
     text-align: center;
 }
@@ -278,20 +278,20 @@ textarea {
 .calendar-day-header {
     font-size: 0.8rem;
     font-weight: bold;
-    color: #888;
+    color: #c8b9ab;
     padding-bottom: 5px;
 }
 
 .calendar-day {
     aspect-ratio: 1;
-    background-color: #252525;
+    background-color: #36210f;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     font-size: 0.9rem;
-    color: #aaa;
+    color: #c8b9ab;
 }
 
 .calendar-day.empty-slot {
@@ -299,35 +299,23 @@ textarea {
 }
 
 .calendar-day.has-workout {
-    background-color: #2ecc71;
+    background-color: #d4831f; /* Jours validés en orange du logo */
     color: white;
     font-weight: bold;
-    box-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
+    box-shadow: 0 0 8px rgba(212, 131, 31, 0.4);
 }
 
 .streak-fire-box {
-    background: linear-gradient(135deg, #2c1a1a, #1e1e1e);
-    border: 2px solid #ff6b6b;
+    background: linear-gradient(135deg, #3a2010, #4a2e16);
+    border: 2px solid #d4831f;
     padding: 15px;
     border-radius: 12px;
     text-align: center;
     margin-bottom: 15px;
-    animation: pulse-glow 2s infinite alternate;
-}
-
-@keyframes pulse-glow {
-    0% { box-shadow: 0 0 5px rgba(255, 107, 107, 0.2); }
-    100% { box-shadow: 0 0 15px rgba(255, 107, 107, 0.6); }
-}
-
-@keyframes bounce-in {
-    0% { transform: scale(0.8); opacity: 0; }
-    60% { transform: scale(1.05); opacity: 1; }
-    100% { transform: scale(1); }
 }
 
 .milestone-alert {
-    background-color: #e74c3c;
+    background-color: #d4831f;
     color: white;
     padding: 8px 12px;
     border-radius: 8px;
@@ -335,7 +323,6 @@ textarea {
     font-size: 0.9rem;
     margin-top: 8px;
     display: inline-block;
-    animation: bounce-in 0.5s ease-out;
 }
 
 /* --- GRAPHIQUES --- */
@@ -343,15 +330,15 @@ textarea {
     position: relative;
     height: 230px;
     width: 100%;
-    background-color: #252525;
+    background-color: #36210f;
     padding: 10px;
     border-radius: 8px;
 }
 
 /* --- SYSTÈME DE RANGS & STATS --- */
 .rank-card {
-    background: linear-gradient(135deg, #252525, #1e1e1e);
-    border: 2px solid #444;
+    background: linear-gradient(135deg, #36210f, #4a2e16);
+    border: 2px solid #5c3a1d;
     padding: 15px;
     border-radius: 12px;
     text-align: center;
@@ -363,7 +350,7 @@ textarea {
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #aaa;
+    color: #c8b9ab;
     margin-bottom: 4px;
 }
 
@@ -373,44 +360,44 @@ textarea {
     margin-bottom: 4px;
 }
 
-.rank-unranked { color: #777; border-color: #555; }
+.rank-unranked { color: #8c7b6d; border-color: #4a2e16; }
 .rank-bronze { color: #cd7f32; border-color: #cd7f32; }
 .rank-silver { color: #c0c0c0; border-color: #c0c0c0; }
 .rank-gold { color: #f1c40f; border-color: #f1c40f; }
 .rank-platinum { color: #1abc9c; border-color: #1abc9c; }
 .rank-diamond { color: #3498db; border-color: #3498db; }
 .rank-master { color: #9b59b6; border-color: #9b59b6; }
-.rank-grandmaster { color: #e74c3c; border-color: #e74c3c; box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); }
+.rank-grandmaster { color: #d4831f; border-color: #d4831f; box-shadow: 0 0 15px rgba(212, 131, 31, 0.6); }
 
 .stat-card {
-    background-color: #252525;
+    background-color: #36210f;
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 10px;
-    border-left: 4px solid #2ecc71;
+    border-left: 4px solid #d4831f;
 }
 
 .stat-card h4 {
     font-size: 0.95rem;
-    color: #fff;
+    color: #fdfbf7;
     margin-bottom: 4px;
 }
 
 .stat-card p {
     font-size: 1.1rem;
     font-weight: bold;
-    color: #2ecc71;
+    color: #d4831f;
 }
 
 .stat-card small {
-    color: #aaa;
+    color: #c8b9ab;
     font-size: 0.8rem;
 }
 
 /* --- SUCCÈS / ACHIEVEMENTS --- */
 .achievement-item {
-    background-color: #252525;
-    border: 1px solid #333;
+    background-color: #36210f;
+    border: 1px solid #5c3a1d;
     padding: 10px 12px;
     border-radius: 8px;
     margin-bottom: 8px;
@@ -420,19 +407,19 @@ textarea {
 }
 
 .achievement-item.unlocked {
-    border-color: #2ecc71;
-    background: linear-gradient(135deg, #1b3a26, #252525);
+    border-color: #d4831f;
+    background: linear-gradient(135deg, #4a2e16, #36210f);
 }
 
 .achievement-info h4 {
     font-size: 0.9rem;
-    color: #fff;
+    color: #fdfbf7;
     margin-bottom: 2px;
 }
 
 .achievement-info p {
     font-size: 0.75rem;
-    color: #aaa;
+    color: #c8b9ab;
 }
 
 .achievement-status {
